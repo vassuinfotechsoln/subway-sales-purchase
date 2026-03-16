@@ -41,6 +41,14 @@ jobs:
             # Mapping port 5173 just in case, but also 80 if the proxy expects it (optional, depends on VPS)
             docker run -d -p 5173:4173 --name subway-app subway-app
             
+            echo "--- DIAGNOSTICS: NGINX & PORTS ---"
+            echo "Nginx configs:"
+            ls /etc/nginx/sites-enabled/ || echo "Nginx not found in /etc/nginx"
+            grep -r "proxy_pass" /etc/nginx/sites-enabled/ || true
+            echo "Listening ports:"
+            netstat -tulpn || ss -tulpn || true
+            echo "----------------------------------"
+
             echo "--- DEPLOYMENT REPORT ---"
             docker ps -a
             echo "Container Status:"
