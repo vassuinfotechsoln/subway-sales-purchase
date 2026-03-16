@@ -204,7 +204,7 @@ export default function StorePerformance() {
                         <h1 style={{ fontSize: '1.8rem', fontWeight: '800', letterSpacing: '-0.03em' }}>Business Analytics</h1>
                     </div>
                     <p style={{ color: 'var(--text-muted)', marginTop: '4px', fontSize: '0.9rem', fontWeight: '500' }}>
-                        All stores — <span style={{ color: 'var(--primary)', fontWeight: '600' }}>full admin view</span>
+                        {selectedStore?.id === 'ALL' ? 'All Stores — Network Performance' : `${selectedStore?.name} — Outlet Performance`}
                     </p>
                 </div>
 

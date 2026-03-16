@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { useAppContext } from "../context/AppContext";
 import {
   Plus,
@@ -19,11 +19,21 @@ export default function Sales() {
     processSale,
     businessInfo,
     stores,
+    selectedStore,
   } = useAppContext();
   const sales = user?.role === 'admin' ? allSales : contextFilteredSales;
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setModalOpen] = useState(false);
-  const [storeFilter, setStoreFilter] = useState("All");
+  const [storeFilter, setStoreFilter] = useState(selectedStore?.id === 'ALL' ? 'All' : selectedStore?.id);
+
+  // Sync with global selectedStore
+  useEffect(() => {
+    if (selectedStore?.id === 'ALL') {
+      setStoreFilter('All');
+    } else {
+      setStoreFilter(selectedStore?.id);
+    }
+  }, [selectedStore]);
 
   // POS State
   const [customer, setCustomer] = useState("");

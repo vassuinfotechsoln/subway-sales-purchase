@@ -37,10 +37,20 @@ export default function Purchases() {
 }
 
 function PurchasesContent() {
-    const { user, purchases: allPurchases, filteredPurchases: contextFilteredPurchases, vendors, filteredInventory: inventory, processPurchase, businessInfo } = useAppContext();
+    const { user, purchases: allPurchases, filteredPurchases: contextFilteredPurchases, vendors, filteredInventory: inventory, processPurchase, businessInfo, stores, selectedStore } = useAppContext();
     const purchases = user?.role === 'admin' ? allPurchases : contextFilteredPurchases;
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setModalOpen] = useState(false);
+    const [storeFilter, setStoreFilter] = useState(selectedStore?.id === 'ALL' ? 'All' : selectedStore?.id);
+
+    // Sync with global selectedStore
+    useEffect(() => {
+        if (selectedStore?.id === 'ALL') {
+            setStoreFilter('All');
+        } else {
+            setStoreFilter(selectedStore?.id);
+        }
+    }, [selectedStore, stores]);
 
     // GRN Form State
     const [vendorId, setVendorId] = useState('');
@@ -157,9 +167,10 @@ function PurchasesContent() {
             const matchesSearch = 
                 (p.id?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
                 (vendor?.name?.toLowerCase() || "").includes(searchTerm.toLowerCase());
-            return matchesSearch;
+            const matchesStore = storeFilter === 'All' || p.storeId === storeFilter;
+            return matchesSearch && matchesStore;
         });
-    }, [purchases, searchTerm, vendors]);
+    }, [purchases, searchTerm, vendors, storeFilter]);
 
     const getPoTotal = () => cart.reduce((acc, item) => acc + (item.unitCost * item.qty), 0);
 
@@ -225,6 +236,19 @@ function PurchasesContent() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    {user?.role === 'admin' && (
+                        <select 
+                            className="input-control" 
+                            style={{ width: '150px', padding: '4px 8px', fontSize: '0.8rem' }}
+                            value={storeFilter}
+                            onChange={(e) => setStoreFilter(e.target.value)}
+                        >
+                            <option value="All">All Stores</option>
+                            {stores.map(s => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                        </select>
+                    )}
                     <input
                         type="file"
                         accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"

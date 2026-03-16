@@ -8,10 +8,20 @@ export default function Inventory() {
     inventory: allInventory,
     filteredInventory,
     businessInfo,
+    selectedStore,
     stores,
   } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
-  const [storeFilter, setStoreFilter] = useState("Selected");
+  const [storeFilter, setStoreFilter] = useState(selectedStore?.id === 'ALL' ? 'All' : 'Selected');
+
+  // Sync with global selectedStore
+  React.useEffect(() => {
+    if (selectedStore?.id === 'ALL') {
+      setStoreFilter('All');
+    } else {
+      setStoreFilter('Selected');
+    }
+  }, [selectedStore]);
 
   const lowStockThreshold = 20;
 

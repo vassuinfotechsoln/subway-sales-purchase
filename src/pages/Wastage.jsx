@@ -4,7 +4,7 @@ import { Trash2, AlertCircle, Plus, Search, Filter } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function Wastage() {
-    const { user, wastage: allWastage, filteredWastage: contextFilteredWastage, filteredInventory: inventory, logWastage, deleteWastage, deleteMultipleWastage, businessInfo } = useAppContext();
+    const { user, wastage: allWastage, filteredWastage: contextFilteredWastage, filteredInventory: inventory, logWastage, deleteWastage, deleteMultipleWastage, businessInfo, selectedStore, stores } = useAppContext();
     const wastage = user?.role === 'admin' ? allWastage : contextFilteredWastage;
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRaw, setSelectedRaw] = useState('');
@@ -12,7 +12,16 @@ export default function Wastage() {
     const [reason, setReason] = useState('');
     const [wasteDate, setWasteDate] = useState(new Date().toISOString().split('T')[0]);
     const [isModalOpen, setModalOpen] = useState(false);
-    const [storeFilter, setStoreFilter] = useState('All');
+    const [storeFilter, setStoreFilter] = useState(selectedStore?.id === 'ALL' ? 'All' : selectedStore?.id);
+
+    // Sync with global selectedStore
+    React.useEffect(() => {
+        if (selectedStore?.id === 'ALL') {
+            setStoreFilter('All');
+        } else {
+            setStoreFilter(selectedStore?.id);
+        }
+    }, [selectedStore, stores]);
     const [selectedIds, setSelectedIds] = useState([]);
 
     const filteredWastage = React.useMemo(() => {

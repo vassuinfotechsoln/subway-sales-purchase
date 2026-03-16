@@ -23,11 +23,22 @@ export default function Expenses() {
     deleteExpense,
     updateExpense,
     stats,
+    selectedStore,
+    stores,
   } = useAppContext();
   const expenses = user?.role === "admin" ? allExpenses : contextFilteredExpenses;
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [storeFilter, setStoreFilter] = useState("All");
+  const [storeFilter, setStoreFilter] = useState(selectedStore?.id === 'ALL' ? 'All' : selectedStore?.id);
+
+  // Sync with global selectedStore
+  React.useEffect(() => {
+    if (selectedStore?.id === 'ALL') {
+      setStoreFilter('All');
+    } else {
+      setStoreFilter(selectedStore?.id);
+    }
+  }, [selectedStore, stores]);
 
   const filteredExpenses = React.useMemo(() => {
     return expenses.filter((e) => {
