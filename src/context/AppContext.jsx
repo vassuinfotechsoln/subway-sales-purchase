@@ -205,7 +205,7 @@ export function AppProvider({ children }) {
 
 
     // --- 2. PERSISTENT STATE INITIALIZATION ---
-    const DATA_VERSION = 'vassu_v_store_stable_v12';
+    const DATA_VERSION = 'vassu_v_store_stable_v13';
     
     // Force clear old data if version mismatch - happens before component initialization
     const savedVersion = localStorage.getItem('vassu_data_version');
@@ -350,23 +350,36 @@ export function AppProvider({ children }) {
 
     useEffect(() => {
         // Calculate Stats
-        const totalRev = filteredSales.reduce((acc, sale) => acc + sale.amount, 0);
+        let totalRev = 0;
         let totalCogs = 0;
-        filteredSales.forEach(sale => {
-            sale.items.forEach(soldItem => {
-                const menuD = menuItems.find(m => m.id === soldItem.menuId);
-                if (menuD) {
-                    menuD.recipe.forEach(r => {
-                        const rawItem = filteredInventory.find(inv => inv.id === r.rawId);
-                        if (rawItem) totalCogs += (rawItem.pricePerUnit * r.qty) * soldItem.qty;
+        
+        if (Array.isArray(filteredSales)) {
+            filteredSales.forEach(sale => {
+                if (sale && typeof sale.amount === 'number') {
+                    totalRev += sale.amount;
+                }
+                
+                if (sale && Array.isArray(sale.items)) {
+                    sale.items.forEach(soldItem => {
+                        if (!soldItem) return;
+                        const menuD = Array.isArray(menuItems) ? menuItems.find(m => m.id === soldItem.menuId) : null;
+                        if (menuD && Array.isArray(menuD.recipe)) {
+                            menuD.recipe.forEach(r => {
+                                if (!r) return;
+                                const rawItem = Array.isArray(filteredInventory) ? filteredInventory.find(inv => inv.id === r.rawId) : null;
+                                if (rawItem && typeof rawItem.pricePerUnit === 'number' && typeof r.qty === 'number' && typeof soldItem.qty === 'number') {
+                                    totalCogs += (rawItem.pricePerUnit * r.qty) * soldItem.qty;
+                                }
+                            });
+                        }
                     });
                 }
             });
-        });
+        }
 
-        const poCost = filteredPurchases.filter(p => p.status === 'Received-QC-Pass').reduce((acc, po) => acc + po.totalAmount, 0);
-        const wCost = filteredWastage.reduce((acc, w) => acc + w.cost, 0);
-        const exTotal = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
+        const poCost = Array.isArray(filteredPurchases) ? filteredPurchases.filter(p => p && p.status === 'Received-QC-Pass').reduce((acc, po) => acc + (po.totalAmount || 0), 0) : 0;
+        const wCost = Array.isArray(filteredWastage) ? filteredWastage.reduce((acc, w) => acc + (w.cost || 0), 0) : 0;
+        const exTotal = Array.isArray(filteredExpenses) ? filteredExpenses.reduce((acc, e) => acc + (e.amount || 0), 0) : 0;
 
 
         setStats({
