@@ -548,23 +548,7 @@ option {
   font-weight: 700;
 }
 
-.demo-creds {
-  margin-top: 24px;
-  padding: 12px;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  text-align: center;
-  background: var(--bg-card-hover);
-}
 
-.demo-creds p {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.demo-creds strong {
-  color: var(--primary);
-}
 
 @keyframes scaleUp {
   from {

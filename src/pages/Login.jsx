@@ -97,11 +97,7 @@ export default function Login() {
                         Sign In <ArrowRight size={18} />
                     </button>
 
-                    <div className="demo-creds">
-                        <p>Admin: <strong>admin@vassu.com</strong> / <strong>admin123</strong></p>
-                        <p>Baker Street: <strong>bakerst@store.com</strong> / <strong>BakerSt@123</strong></p>
-                        <p>Camden: <strong>camden@store.com</strong> / <strong>Camden@123</strong></p>
-                    </div>
+
                 </form>
 
                 <div className="auth-footer">

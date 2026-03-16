@@ -747,7 +747,10 @@ export default function Sales() {
                       >
                         <option value="Dine-In">Dine-In</option>
                         <option value="Takeaway">Takeaway</option>
-                        <option value="Zomato/Swiggy">Zomato / Swiggy</option>
+                        <option value="Just-Eat">Just Eat</option>
+                        <option value="Uber-Eats">Uber Eats</option>
+                        <option value="Deliveroo">Deliveroo</option>
+                        <option value="Subway-App">Subway App</option>
                       </select>
                     </div>
 

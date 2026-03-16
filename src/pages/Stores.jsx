@@ -15,7 +15,8 @@ export default function Stores() {
     const handleAddStore = (e) => {
         e.preventDefault();
         const id = `S${stores.length + 1}`;
-        setStores([...stores, { ...newStore, id }]);
+        const createdAt = new Date().toLocaleString();
+        setStores([...stores, { ...newStore, id, createdAt }]);
         setModalOpen(false);
         setNewStore({ name: '', location: '', color: '#2563eb', currency: '£' });
     };
@@ -91,6 +92,11 @@ export default function Stores() {
                         <p style={{ color: 'var(--primary)', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '20px', fontWeight: '600' }}>
                            <Globe size={12} /> Local Currency: {store.currency || businessInfo.currency}
                         </p>
+                        {store.createdAt && (
+                            <p style={{ color: 'var(--text-muted)', fontSize: '0.65rem', fontStyle: 'italic', marginBottom: '12px' }}>
+                                Registered on: {store.createdAt}
+                            </p>
+                        )}
 
                         <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
                             <div style={{ flex: 1, textAlign: 'center' }}>

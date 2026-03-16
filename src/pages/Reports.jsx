@@ -139,9 +139,7 @@ export default function Reports() {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Grouping by Weeks (Monday to Sunday)
     let current = new Date(start);
-    // Align to nearest previous Monday
     current.setDate(current.getDate() - (current.getDay() === 0 ? 6 : current.getDay() - 1));
     
     let weekNum = 1;
@@ -150,47 +148,31 @@ export default function Reports() {
       const weekEnd = new Date(current);
       weekEnd.setDate(weekEnd.getDate() + 6);
 
-      // 1. Weekly Header
-      allRows.push([`WEEK-${weekNum} ${weekStart.toLocaleDateString()} To ${weekEnd.toLocaleDateString()}`]);
+      allRows.push([`WEEK-${weekNum} (${weekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()})`]);
       allRows.push(mainHeaders);
 
-      let weekTotalGross = 0;
-      let weekTotalNet = 0;
-      let weekTotal3PD = 0;
-      let weekTotalLabour = 0;
-      let weekTotalFood = 0;
+      let wG = 0, wN = 0, w3 = 0, wL = 0, wF = 0, wC = 0;
 
-      // 2. Data for each store in this specific week
-      stores.forEach((store, idx) => {
-        const storeSalesInWeek = sales.filter(s => 
-          s.storeId === store.id && 
-          new Date(s.date) >= weekStart && 
-          new Date(s.date) <= weekEnd
-        );
-        
-        const storeExpensesInWeek = expenses.filter(e => 
-          e.storeId === store.id && 
-          new Date(e.date) >= weekStart && 
-          new Date(e.date) <= weekEnd
-        );
+      const displayStores = selectedStore?.id === 'ALL' ? stores : stores.filter(s => s.id === selectedStore?.id);
+      
+      displayStores.forEach((store, idx) => {
+        const sSales = sales.filter(s => s.storeId === store.id && new Date(s.date) >= weekStart && new Date(s.date) <= weekEnd);
+        const sExp = expenses.filter(e => e.storeId === store.id && new Date(e.date) >= weekStart && new Date(e.date) <= weekEnd);
 
-        const gross = storeSalesInWeek.reduce((a, b) => a + b.amount, 0);
-        const je = storeSalesInWeek.filter(s => s.customer?.toLowerCase().includes('just')).reduce((a, b) => a + b.amount, 0);
-        const ue = storeSalesInWeek.filter(s => s.customer?.toLowerCase().includes('uber')).reduce((a, b) => a + b.amount, 0);
-        const dl = storeSalesInWeek.filter(s => s.customer?.toLowerCase().includes('deliveroo')).reduce((a, b) => a + b.amount, 0);
-        const tpd = je + ue + dl;
+        const gross = sSales.reduce((a, b) => a + b.amount, 0);
+        const je = sSales.filter(s => s.type === 'Just-Eat').reduce((a,b) => a + b.amount, 0);
+        const ue = sSales.filter(s => s.type === 'Uber-Eats').reduce((a,b) => a + b.amount, 0);
+        const dr = sSales.filter(s => s.type === 'Deliveroo').reduce((a,b) => a + b.amount, 0);
+        const tpd = je + ue + dr;
         
-        const labour = storeExpensesInWeek.filter(e => 
-          (e.category?.toLowerCase().includes('labour') || e.category?.toLowerCase().includes('wage'))
-        ).reduce((a, b) => a + b.amount, 0);
+        const labour = sExp.filter(e => e.category?.toLowerCase().includes('labour') || e.category?.toLowerCase().includes('wage')).reduce((a,b) => a + b.amount, 0);
         
-        // Accurate COGS for this week/store
         let foodCost = 0;
-        storeSalesInWeek.forEach(s => {
+        sSales.forEach(s => {
           s.items.forEach(it => {
-            const menuItem = menuItems.find(m => m.id === it.menuId);
-            if (menuItem) {
-              menuItem.recipe.forEach(r => {
+            const m = menuItems.find(mi => mi.id === it.menuId);
+            if (m) {
+              m.recipe.forEach(r => {
                 const raw = allInventory.find(ri => ri.id === r.rawId && ri.storeId === store.id);
                 if (raw) foodCost += (raw.pricePerUnit * r.qty * it.qty);
               });
@@ -199,45 +181,32 @@ export default function Reports() {
         });
 
         allRows.push([
-          idx + 1,
-          store.name,
-          gross.toFixed(2),
-          (gross * 0.2).toFixed(2),
-          "20%",
-          "0.00", // Adjusted VAT
-          (gross / 1.2).toFixed(2),
-          gross > 0 ? ((tpd / gross) * 100).toFixed(1) + "%" : "0%",
-          tpd.toFixed(2),
-          storeSalesInWeek.length, // Customer Count
+          idx + 1, store.name, gross.toFixed(2), (gross * 0.2).toFixed(2), "20%", "0.00", (gross / 1.2).toFixed(2),
+          gross > 0 ? ((tpd/gross)*100).toFixed(1)+"%" : "0%", tpd.toFixed(2), sSales.length,
           je.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00",
           ue.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00",
-          dl.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00",
+          dr.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00",
           tpd.toFixed(2), "100%", "0", labour.toFixed(2),
-          gross > 0 ? ((labour / gross) * 100).toFixed(1) + "%" : "0%",
+          gross > 0 ? ((labour/gross)*100).toFixed(1)+"%" : "0%",
           foodCost.toFixed(2),
-          gross > 0 ? ((foodCost / gross) * 100).toFixed(1) + "%" : "0%",
-          gross > 0 ? (((labour + foodCost) / gross) * 100).toFixed(1) + "%" : "0%",
+          gross > 0 ? ((foodCost/gross)*100).toFixed(1)+"%" : "0%",
+          gross > 0 ? (((labour + foodCost)/gross)*100).toFixed(1)+"%" : "0%",
           foodCost.toFixed(2),
           labour.toFixed(2)
         ]);
 
-        weekTotalGross += gross;
-        weekTotalNet += (gross / 1.2);
-        weekTotal3PD += tpd;
-        weekTotalLabour += labour;
-        weekTotalFood += foodCost;
+        wG += gross; wN += (gross / 1.2); w3 += tpd; wL += labour; wF += foodCost; wC += sSales.length;
       });
 
-      // 3. Weekly Total Row
+      // WEEK TOTAL
       allRows.push([
-        "", "TOTAL", weekTotalGross.toFixed(2), (weekTotalGross * 0.2).toFixed(2), "", "", weekTotalNet.toFixed(2),
-        "", weekTotal3PD.toFixed(2), "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-        weekTotalLabour.toFixed(2), "", weekTotalFood.toFixed(2), "", "", "", ""
+        "", "TOTAL", wG.toFixed(2), (wG * 0.2).toFixed(2), "", "", wN.toFixed(2),
+        "", w3.toFixed(2), wC,
+        "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+        w3.toFixed(2), "", "", wL.toFixed(2), "", wF.toFixed(2), "", "", wF.toFixed(2), wL.toFixed(2)
       ]);
 
-      allRows.push([]); // Spacer row between weeks
-      
-      // Move to next week
+      allRows.push([]); // Spacer
       current.setDate(current.getDate() + 7);
       weekNum++;
     }

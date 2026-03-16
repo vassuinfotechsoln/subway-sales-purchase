@@ -115,8 +115,9 @@ export default function StorePerformance() {
             .slice(0, 5)
             .map(([name, value]) => ({ name, value }));
 
-        // --- STORE COMPARISON (Uses ALL SALES, re-filters by date) ---
-        const storeRevMap = stores.map(s => {
+        // --- STORE COMPARISON ---
+        const displayStores = selectedStore?.id === 'ALL' ? stores : stores.filter(s => s.id === selectedStore?.id);
+        const storeRevMap = displayStores.map(s => {
             const rev = sales.filter(sale => sale.storeId === s.id && sale.date >= dateRange.start && sale.date <= dateRange.end)
                             .reduce((sum, sale) => sum + sale.amount, 0);
             return { name: s.name, revenue: rev };
@@ -455,11 +456,11 @@ export default function StorePerformance() {
                     <div style={{ height: '300px' }}>
                          <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={(() => {
-                                const wastageByProduct = {};
-                                wastage.forEach(w => {
-                                    const productName = w.name || 'Unknown';
-                                    wastageByProduct[productName] = (wastageByProduct[productName] || 0) + (Number(w.cost) || 0);
-                                });
+                                 const wastageByProduct = {};
+                                 wastage.filter(w => selectedStore?.id === 'ALL' || w.storeId === selectedStore?.id).forEach(w => {
+                                     const productName = w.name || 'Unknown';
+                                     wastageByProduct[productName] = (wastageByProduct[productName] || 0) + (Number(w.cost) || 0);
+                                 });
                                 return Object.entries(wastageByProduct)
                                     .map(([name, loss]) => ({ name, loss: parseFloat(loss.toFixed(2)) }))
                                     .sort((a, b) => b.loss - a.loss)
