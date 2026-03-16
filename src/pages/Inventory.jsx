@@ -214,7 +214,6 @@ export default function Inventory() {
               <th>Total Stock</th>
               <th>Active Batches Details (FEFO)</th>
               <th>Cost/Unit</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -254,31 +253,11 @@ export default function Inventory() {
                     </div>
                   ))}
                 </td>
-                <td>
-                  {businessInfo.currency}
-                  {item.pricePerUnit.toFixed(2)}
-                </td>
-                <td>
-                  <span
-                    className="badge"
-                    style={{
-                      background:
-                        item.totalStock < lowStockThreshold
-                          ? "var(--primary-glow)"
-                          : "var(--bg-card-hover)",
-                      color:
-                        item.totalStock < lowStockThreshold
-                          ? "var(--primary)"
-                          : "var(--text-muted)",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
-                    {item.totalStock < lowStockThreshold
-                      ? "Needs Reorder"
-                      : "Healthy"}
-                  </span>
-                </td>
-              </tr>
+                  <td>
+                    {businessInfo.currency}
+                    {item.pricePerUnit.toFixed(2)}
+                  </td>
+                </tr>
             ))}
             {displayInventory.length === 0 && (
               <tr>

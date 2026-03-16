@@ -202,14 +202,13 @@ export default function Customers() {
               <th>Visits</th>
               <th>Avg. Ticket</th>
               <th>Last Visit</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredCustomers.length === 0 ? (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="5"
                   style={{
                     textAlign: "center",
                     padding: "40px",
@@ -256,13 +255,6 @@ export default function Customers() {
                     style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}
                   >
                     {new Date(c.lastOrder).toLocaleDateString()}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${c.totalSpent > 100 ? "badge-success" : "badge-primary"}`}
-                    >
-                      {c.totalSpent > 100 ? "Loyal" : "Explorer"}
-                    </span>
                   </td>
                 </tr>
               ))

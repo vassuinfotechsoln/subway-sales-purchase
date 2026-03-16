@@ -94,15 +94,9 @@ export default function Stores() {
 
                         <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
                             <div style={{ flex: 1, textAlign: 'center' }}>
-                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>Status</div>
-                                <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--success)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                    <ShieldCheck size={14} /> Live
-                                </div>
-                            </div>
-                            <div style={{ flex: 1, textAlign: 'center', borderLeft: '1px solid var(--border)' }}>
-                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>Health</div>
+                                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>Health Status</div>
                                 <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                    <Activity size={14} /> 98%
+                                    <Activity size={14} /> 98% Optimized
                                 </div>
                             </div>
                         </div>

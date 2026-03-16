@@ -277,7 +277,6 @@ function PurchasesContent() {
                             <th>Vendor VAT ID</th>
                             <th>Batches Inward</th>
                             <th>Total Invoice</th>
-                            <th>QC Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -295,16 +294,11 @@ function PurchasesContent() {
                                         ))}
                                     </td>
                                     <td style={{ fontWeight: '700' }}>{businessInfo.currency}{(purchase.totalAmount || 0).toFixed(2)}</td>
-                                    <td>
-                                        <span className={`badge ${purchase.status === 'Received-QC-Pass' ? 'badge-success' : 'badge-danger'}`}>
-                                            {purchase.status === 'Received-QC-Pass' ? <><CheckCircle size={12} /> Passed</> : <><XCircle size={12} /> Failed</>}
-                                        </span>
-                                    </td>
                                 </tr>
                             );
                         })}
                         {filteredPurchases.length === 0 && (
-                            <tr><td colSpan="6" style={{ textAlign: 'center', padding: '32px' }}>No procurements historically matching criteria.</td></tr>
+                            <tr><td colSpan="5" style={{ textAlign: 'center', padding: '32px' }}>No procurements historically matching criteria.</td></tr>
                         )}
                     </tbody>
                 </table>
