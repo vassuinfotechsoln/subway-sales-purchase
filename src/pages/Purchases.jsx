@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Plus, Search, CheckCircle, XCircle, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import * as pdfjs from 'pdfjs-dist';
+
+// Set worker path for pdfjs
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 class PurchasesErrorBoundary extends React.Component {
     constructor(props) {
@@ -42,6 +46,7 @@ function PurchasesContent() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setModalOpen] = useState(false);
     const [storeFilter, setStoreFilter] = useState(selectedStore?.id === 'ALL' ? 'All' : selectedStore?.id);
+    const [isParsingPdf, setIsParsingPdf] = useState(false);
 
     // Sync with global selectedStore
     useEffect(() => {
@@ -80,6 +85,73 @@ function PurchasesContent() {
 
     // File Upload State
     const fileInputRef = useRef(null);
+    const pdfInputRef = useRef(null);
+
+    const handlePdfUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setIsParsingPdf(true);
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+            let fullText = "";
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                const pageText = textContent.items.map(item => item.str).join(" ");
+                fullText += pageText + "\n";
+            }
+
+            console.log("Extracted PDF Text:", fullText);
+            
+            // Intelligent Parsing Logic
+            // 1. Identify Vendor by VAT ID or Name keywords
+            let detectedVendor = vendors.find(v => fullText.includes(v.vatId) || fullText.toLowerCase().includes(v.name.toLowerCase()));
+            
+            // 2. Identify Date
+            const dateMatch = fullText.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})|(\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/);
+            const detectedDate = dateMatch ? dateMatch[0] : new Date().toISOString().split('T')[0];
+
+            // 3. Extract Items (Regex for common patterns: Name ... Qty ... Price)
+            // This is a simplified example, usually customized for specific invoice layouts
+            const itemsFound = [];
+            inventory.forEach(invItem => {
+                if (fullText.toLowerCase().includes(invItem.name.toLowerCase())) {
+                    // Try to find quantity near the name
+                    const nameIndex = fullText.toLowerCase().indexOf(invItem.name.toLowerCase());
+                    const surroundingText = fullText.substring(nameIndex, nameIndex + 100);
+                    const qtyMatch = surroundingText.match(/(\d+)\s*(?:unit|kg|loaf|pack|litre|pc)/i) || surroundingText.match(/(\d+)/);
+                    
+                    itemsFound.push({
+                        rawId: invItem.id,
+                        name: invItem.name,
+                        qty: qtyMatch ? parseFloat(qtyMatch[1]) : 1,
+                        unitCost: invItem.pricePerUnit,
+                        batchNo: `PDF-${Math.floor(Math.random() * 1000)}`,
+                        expiryDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+                    });
+                }
+            });
+
+            if (itemsFound.length > 0) {
+                setCart(itemsFound);
+                if (detectedVendor) setVendorId(detectedVendor.id);
+                setModalOpen(true);
+                alert(`Found ${itemsFound.length} items from PDF bill. Please review before completing.`);
+            } else {
+                alert("Could not identify specific items from this PDF. It might be a complex layout or image-only PDF.");
+            }
+
+        } catch (err) {
+            console.error("PDF Parsing Error:", err);
+            alert("Error parsing PDF. Please try a different file or enter manually.");
+        } finally {
+            setIsParsingPdf(false);
+            if (pdfInputRef.current) pdfInputRef.current.value = "";
+        }
+    };
 
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
@@ -251,11 +323,26 @@ function PurchasesContent() {
                     )}
                     <input
                         type="file"
+                        accept=".pdf"
+                        style={{ display: 'none' }}
+                        ref={pdfInputRef}
+                        onChange={handlePdfUpload}
+                    />
+                    <input
+                        type="file"
                         accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                         style={{ display: 'none' }}
                         ref={fileInputRef}
                         onChange={handleFileUpload}
                     />
+                    <button 
+                        className="btn btn-outline" 
+                        onClick={() => pdfInputRef.current?.click()}
+                        disabled={isParsingPdf}
+                    >
+                        <Upload size={18} />
+                        <span>{isParsingPdf ? 'Parsing Bill...' : 'Upload PDF Bill'}</span>
+                    </button>
                     <button className="btn btn-outline" onClick={() => fileInputRef.current?.click()}>
                         <Upload size={18} />
                         <span>Upload XLSX/CSV</span>
