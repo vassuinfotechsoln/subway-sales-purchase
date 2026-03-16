@@ -220,9 +220,10 @@ export function AppProvider({ children }) {
 
     const getSaved = (key, defaultVal) => {
         const saved = localStorage.getItem(`vassu_${key}`);
-        if (!saved) return defaultVal;
+        if (!saved || saved === 'undefined' || saved === 'null') return defaultVal;
         try {
-            return JSON.parse(saved);
+            const parsed = JSON.parse(saved);
+            return (parsed !== null && parsed !== undefined) ? parsed : defaultVal;
         } catch (e) {
             return defaultVal;
         }
@@ -318,26 +319,31 @@ export function AppProvider({ children }) {
     const [stats, setStats] = useState({ totalRevenue: 0, cogs: 0, poTotal: 0, wastageCost: 0, expenseTotal: 0, netProfit: 0 });
 
     const filteredSales = useMemo(() => {
+        if (!Array.isArray(sales)) return [];
         if (selectedStore?.id === 'ALL') return sales;
         return sales.filter(s => s.storeId === selectedStore?.id);
     }, [sales, selectedStore]);
 
     const filteredPurchases = useMemo(() => {
+        if (!Array.isArray(purchases)) return [];
         if (selectedStore?.id === 'ALL') return purchases;
         return purchases.filter(p => p.storeId === selectedStore?.id);
     }, [purchases, selectedStore]);
 
     const filteredInventory = useMemo(() => {
+        if (!Array.isArray(inventory)) return [];
         if (selectedStore?.id === 'ALL') return inventory;
         return inventory.filter(i => i.storeId === selectedStore?.id);
     }, [inventory, selectedStore]);
 
     const filteredWastage = useMemo(() => {
+        if (!Array.isArray(wastage)) return [];
         if (selectedStore?.id === 'ALL') return wastage;
         return wastage.filter(w => w.storeId === selectedStore?.id);
     }, [wastage, selectedStore]);
 
     const filteredExpenses = useMemo(() => {
+        if (!Array.isArray(expenses)) return [];
         if (selectedStore?.id === 'ALL') return expenses;
         return expenses.filter(e => e.storeId === selectedStore?.id);
     }, [expenses, selectedStore]);
