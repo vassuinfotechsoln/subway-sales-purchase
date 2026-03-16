@@ -1,9 +1,42 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Plus, Search, CheckCircle, XCircle, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
+class PurchasesErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error, errorInfo) {
+        console.error('Purchases page error:', error, errorInfo);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div style={{ padding: '40px', textAlign: 'center' }}>
+                    <h2 style={{ color: 'var(--danger, red)' }}>Something went wrong loading Purchases</h2>
+                    <p style={{ color: 'var(--text-muted, #666)', marginTop: '12px' }}>{this.state.error?.message}</p>
+                    <button className="btn btn-primary" style={{ marginTop: '20px' }} onClick={() => this.setState({ hasError: false, error: null })}>Try Again</button>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 export default function Purchases() {
+    return (
+        <PurchasesErrorBoundary>
+            <PurchasesContent />
+        </PurchasesErrorBoundary>
+    );
+}
+
+function PurchasesContent() {
     const { user, purchases: allPurchases, filteredPurchases: contextFilteredPurchases, vendors, filteredInventory: inventory, processPurchase, businessInfo } = useAppContext();
     const purchases = user?.role === 'admin' ? allPurchases : contextFilteredPurchases;
     const [searchTerm, setSearchTerm] = useState('');
@@ -233,11 +266,11 @@ export default function Purchases() {
                                     <td style={{ fontWeight: '700' }}>{vendor ? vendor.name : 'Unknown Vendor'}</td>
                                     <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{vendor?.vatId || 'N/A'}</td>
                                     <td style={{ fontSize: '0.85rem' }}>
-                                        {purchase.items.map((it, i) => (
+                                        {(purchase.items || []).map((it, i) => (
                                             <div key={i}>{it.qty}x {it.name} (Batch: {it.batchNo})</div>
                                         ))}
                                     </td>
-                                    <td style={{ fontWeight: '700' }}>{businessInfo.currency}{purchase.totalAmount.toFixed(2)}</td>
+                                    <td style={{ fontWeight: '700' }}>{businessInfo.currency}{(purchase.totalAmount || 0).toFixed(2)}</td>
                                     <td>
                                         <span className={`badge ${purchase.status === 'Received-QC-Pass' ? 'badge-success' : 'badge-danger'}`}>
                                             {purchase.status === 'Received-QC-Pass' ? <><CheckCircle size={12} /> Passed</> : <><XCircle size={12} /> Failed</>}
