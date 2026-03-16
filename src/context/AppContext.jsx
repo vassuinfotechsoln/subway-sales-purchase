@@ -275,7 +275,7 @@ export function AppProvider({ children }) {
     // --- CROSS-TAB SYNC ---
     // When admin updates data in one tab, store user tabs (same browser) auto-refresh
     useEffect(() => {
-        const handleStorageChange = (e) => {g
+        const handleStorageChange = (e) => {
             if (!e.key || !e.key.startsWith('vassu_') || !e.newValue) return;
             try {
                 const newVal = JSON.parse(e.newValue);
