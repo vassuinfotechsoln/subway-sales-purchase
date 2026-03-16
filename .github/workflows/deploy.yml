@@ -27,15 +27,22 @@ jobs:
             git log -1 --oneline
             echo "------------------------"
 
+            echo "Cleaning up old containers..."
             docker stop subway-app || true
             docker rm subway-app || true
+            # Also stop any other containers using the same image
+            docker ps -a -q --filter ancestor=subway-app | xargs docker stop || true
+            docker ps -a -q --filter ancestor=subway-app | xargs docker rm || true
 
             echo "Building new image..."
             docker build --no-cache -t subway-app .
 
             echo "Starting container..."
+            # Mapping port 5173 just in case, but also 80 if the proxy expects it (optional, depends on VPS)
             docker run -d -p 5173:4173 --name subway-app subway-app
             
-            echo "--- RUNNING CONTAINERS ---"
+            echo "--- DEPLOYMENT REPORT ---"
             docker ps -a
+            echo "Container Status:"
+            docker inspect --format='{{.State.Status}}' subway-app
             echo "--------------------------"
